@@ -1,4 +1,5 @@
 API/TOKEN_SPOTIFY.txt
-API/env/*
-APi/.env
+env/*
+API/.env
+spotify_data_dictionary Description.csv 
 
