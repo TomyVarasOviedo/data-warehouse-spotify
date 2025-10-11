@@ -1,11 +1,14 @@
 # Data Warehouse Spotify
 
-## Columns:
+## Data set Canciones Escuchadas
+
+### Columns
+
 | Spotify_track_uri | timestamp | plataform | ms_played | track_name | artist_name | album_name | reason_start | reason_end | shuffle | skipped |
 | ------------------- | --------- | --------- | --------- | ---------- | ----------- | ---------- | ------------- | ----------- | ------- | ------- |
 | string             | timestamp | string    | integer   | string     | string      | string     | string        | string      | boolean | boolean |
 
-## Descripcion:
+### Descripción
 
 - spotify_track_uri: Un identificador único (URI) asignado a cada pista por Spotify.
 - ts: La marca de tiempo cuando comenzó la reproducción de la pista.
@@ -18,3 +21,23 @@
 - reason_end: Describe cómo finalizó la reproducción (por ejemplo, pista completada, salteada).
 - shuffle: un campo booleano que indica si se habilitó el modo aleatorio durante la reproducción.
 - skipped: Un campo booleano que indica si la pista fue omitida (Verdadero) o reproducida completamente (Falso).
+
+## Data set de Conciertos
+
+### Columns
+
+| spotify_track_uri | artist_name | id_concierto | nombre_concierto | pais_concierto | capacidad | cantidad_publico | cantidad_entradas_vendidas | fecha |
+| ----------------- | ----------- | ------------ | ---------------- | -------------- | --------- | ---------------- | -------------------------- | ----- |
+| string            | string      | string      | string           | string         | integer   | | integer          | integer                    | date  |
+
+### Descripción
+
+- spotify_track_uri: Un identificador único (URI) asignado a cada pista por Spotify.
+- artist_name: El artista o banda que interpretó la pista.
+- id_concierto: Un identificador único para cada concierto.
+- nombre_concierto: El nombre o título del concierto.
+- pais_concierto: El país donde se llevó a cabo el concierto.
+- capacidad: La capacidad máxima del lugar del concierto.
+- cantidad_publico: El número de personas que asistieron al concierto.
+- cantidad_entradas_vendidas: El número de entradas vendidas para el concierto.
+- fecha: La fecha en que se llevó a cabo el concierto.
