@@ -78,6 +78,23 @@ async def get_artist_info(artist_id: str):
         raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 
+@app.get("/album-id/{album_id}")
+async def get_album_info(album_id: str):
+    # Implementar API de Spotify para buscar por id de album
+    try:
+        peticion = requests.get(
+            f"https://api.spotify.com/v1/albums/{album_id}", headers=headers
+        )
+        if peticion.status_code == 200:
+            return peticion.json()
+    except HTTPException as http_err:
+        print(f"HTTP error occurred: {http_err}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
+    except Exception as e:
+        print(f"Error al realizar la petición: {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
+
+
 # ------------------------#
 # --- Rutas de la API --- #
 # ------------------------#
