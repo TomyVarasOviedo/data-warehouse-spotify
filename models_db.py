@@ -8,24 +8,21 @@ from orm import (
     Time,
     BigInteger,
     Boolean,
+    ForeignKey
 )
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+user = os.getenv("user_db")
+password = os.getenv("password_db")
+
 
 database = models.databases.Database(
-    "mysql://user:password@localhost:3306/data_warehouse_spotify"
+    f"mysql://{user}:{password}@localhost:3306/data_warehouse_spotify"
 )
 models = models.ModelRegistry(database=database)
-
-
-class Dim_album(Model):
-    tablename = "dim_album"
-    registry = models
-    fields = {
-        "id_album": Integer(primary_key=True),
-        "nombre": String(max_length=200),
-        "artista_id": Integer(foren_key=True, references="dim_artista.id_artista"),
-        "fecha_publicacion": Date(format="YYYY-MM-DD"),
-    }
-
 
 class Dim_artista(Model):
     tablename = "dim_artista"
@@ -36,15 +33,25 @@ class Dim_artista(Model):
     }
 
 
+class Dim_album(Model):
+    tablename = "dim_album"
+    registry = models
+    fields = {
+            "id_album": Integer(primary_key=True),
+            "nombre": String(max_length=200),
+            "artista_id": ForeignKey(Dim_artista),
+            #"fecha_publicacion": DateTime(format="YYYY-MM-DD"),
+    }
+
 class Dim_cancion(Model):
     tablename = "dim_cancion"
     registry = models
     fields = {
         "id_cancion": Integer(primary_key=True),
         "titulo": String(max_length=200),
-        "artista_id": Integer(foren_key=True, references="dim_artista.id_artista"),
-        "album_id": Integer(foren_key=True, references="dim_album.id_album"),
-        "duracion": DateTime(type="time"),
+        "artista_id":  ForeignKey(Dim_artista),
+        "album_id":  ForeignKey(Dim_album),
+        #"duracion": DateTime(type="time"),
     }
 
 
@@ -82,11 +89,11 @@ class Dim_fecha(Model):
     registry = models
     fields = {
         "id_fecha": Integer(primary_key=True),
-        "fecha": Date(format="YYYY-MM-DD"),
+        #"fecha": Date(format="YYYY-MM-DD"),
         "anio": Integer(),
         "mes": Integer(),
         "dia": Integer(),
-        "time": Time(format="HH:MM:SS"),
+        #"time": Time(format="HH:MM:SS"),
     }
 
 
@@ -95,16 +102,14 @@ class Facts_spotify(Model):
     registry = models
     fields = {
         "plackback_id": BigInteger(primary_key=True),
-        "cancion_id": Integer(foren_key=True, references="dim_cancion.id_cancion"),
-        "fecha_id": Integer(foren_key=True, references="dim_fecha.id_fecha"),
-        "plataforma_id": Integer(
-            foren_key=True, references="dim_plataforma.id_plataforma"
-        ),
-        "artista_id": Integer(foren_key=True, references="dim_artista.id_artista"),
-        "album_id": Integer(foren_key=True, references="dim_album.id_album"),
+        "cancion_id":  ForeignKey(Dim_cancion),
+        "fecha_id":  ForeignKey(Dim_fecha),
+        "plataforma_id": ForeignKey(Dim_plataforma),
+        "artista_id":  ForeignKey(Dim_artista),
+        "album_id":  ForeignKey(Dim_album),
         "aletorio_llegada": Boolean(),
-        "razon_llegada": Integer(foren_key=True, references="dim_razon.id_razon"),
-        "razon_salida": Integer(foren_key=True, references="dim_razon.id_razon"),
+        "razon_llegada": ForeignKey(Dim_razon),
+        "razon_salida":  ForeignKey(Dim_razon),
         "omitida": Boolean(),
         "tiempo_escucha": Integer(),
     }
@@ -114,19 +119,16 @@ class Facts_concierto(Model):
     tablename = "facts_concierto"
     registry = models
     fields = {
-        "id_concierto": Integer(
-            foren_key=True, references="dim_concierto.id_concierto"
-        ),
-        "cancion_id": Integer(foren_key=True, references="dim_cancion.id_cancion"),
-        "concierto_id": Integer(
-            foren_key=True, references="dim_concierto.id_concierto"
-        ),
-        "fecha_id": Integer(foren_key=True, references="dim_fecha.id_fecha"),
-        "artista_id": Integer(foren_key=True, references="dim_artista.id_artista"),
+        "id_concierto": BigInteger(primary_key=True),
+        "cancion_id":  ForeignKey(Dim_cancion),
+        "concierto_id": ForeignKey(Dim_concierto),
+        "fecha_id":  ForeignKey(Dim_fecha),
+        "artista_id":  ForeignKey(Dim_artista),
         "cantidad_publico": Integer(),
         "cantidad_entradas_vendidas": Integer(),
     }
 
+#import asyncio
 
-if __name__ == "__main__":
-    models.create_all()
+await models.create_all()
+print(tablas)
