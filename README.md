@@ -1,4 +1,14 @@
 # Data Warehouse Spotify
+>
+> Este repositorio contiene la documentación del Data Warehouse de Spotify, que incluye dos conjuntos de datos principales: "Canciones Escuchadas" y "Conciertos". A continuación se describen ambos conjuntos de datos, sus columnas y el significado de cada una.
+
+## Instalacion
+
+Para instalar las dependencias necesarias para trabajar con este Data Warehouse, puedes usar el siguiente comando:
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Data set Canciones Escuchadas
 

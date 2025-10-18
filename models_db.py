@@ -1,134 +1,145 @@
-from orm import (
-    Model,
-    models,
+from sqlalchemy import (
+    Column,
     Integer,
+    BigInteger,
     String,
     Date,
-    DateTime,
     Time,
-    BigInteger,
     Boolean,
-    ForeignKey
+    ForeignKey,
+    create_engine,
 )
-
+from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
-user = os.getenv("user_db")
-password = os.getenv("password_db")
+user = os.getenv("user_mysql")
+password = os.getenv("password_mysql")
+database = os.getenv("database_name")
 
 
-database = models.databases.Database(
-    f"mysql://{user}:{password}@localhost:3306/data_warehouse_spotify"
-)
-models = models.ModelRegistry(database=database)
+# Conectar con la base de datos
+database_url = f"mysql+pymysql://{user}:{password}@localhost:3306/{database}"
 
-class Dim_artista(Model):
-    tablename = "dim_artista"
-    registry = models
-    fields = {
-        "id_artista": Integer(primary_key=True),
-        "nombre": String(max_length=200),
-    }
+engine = create_engine(database_url, echo=True)
+
+Session = sessionmaker(bind=engine)
 
 
-class Dim_album(Model):
-    tablename = "dim_album"
-    registry = models
-    fields = {
-            "id_album": Integer(primary_key=True),
-            "nombre": String(max_length=200),
-            "artista_id": ForeignKey(Dim_artista),
-            #"fecha_publicacion": DateTime(format="YYYY-MM-DD"),
-    }
+Base = declarative_base()
 
-class Dim_cancion(Model):
-    tablename = "dim_cancion"
-    registry = models
-    fields = {
-        "id_cancion": Integer(primary_key=True),
-        "titulo": String(max_length=200),
-        "artista_id":  ForeignKey(Dim_artista),
-        "album_id":  ForeignKey(Dim_album),
-        #"duracion": DateTime(type="time"),
-    }
+# ---------------------- DIMENSIONES ----------------------
 
 
-class Dim_concierto(Model):
-    tablename = "dim_concierto"
-    registry = models
-    fields = {
-        "id_concierto": Integer(primary_key=True),
-        "nombre": String(max_length=200),
-        "pais": String(max_length=200),
-        "capacidad": Integer(),
-    }
+class Dim_artista(Base):
+    __tablename__ = "dim_artista"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
+    id_artista = Column(Integer, primary_key=True)
+    nombre = Column(String(200), nullable=False)
 
 
-class Dim_razon(Model):
-    tablename = "dim_razon"
-    registry = models
-    fields = {
-        "id_razon_social": Integer(primary_key=True),
-        "nombre": String(max_length=200),
-    }
+class Dim_album(Base):
+    __tablename__ = "dim_album"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
+    id_album = Column(Integer, primary_key=True)
+    nombre = Column(String(200), nullable=False)
+    artista_id = Column(Integer, ForeignKey("dim_artista.id_artista"), nullable=False)
+    fecha_publicacion = Column(Date, nullable=True)
 
 
-class Dim_plataforma(Model):
-    tablename = "dim_plataforma"
-    registry = models
-    fields = {
-        "id_plataforma": Integer(primary_key=True),
-        "nombre": String(max_length=200),
-    }
+class Dim_cancion(Base):
+    __tablename__ = "dim_cancion"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
+    id_cancion = Column(Integer, primary_key=True)
+    titulo = Column(String(200), nullable=False)
+    artista_id = Column(Integer, ForeignKey("dim_artista.id_artista"), nullable=False)
+    album_id = Column(Integer, ForeignKey("dim_album.id_album"), nullable=True)
+    duracion = Column(Time, nullable=True)
 
 
-class Dim_fecha(Model):
-    tablename = "dim_fecha"
-    registry = models
-    fields = {
-        "id_fecha": Integer(primary_key=True),
-        #"fecha": Date(format="YYYY-MM-DD"),
-        "anio": Integer(),
-        "mes": Integer(),
-        "dia": Integer(),
-        #"time": Time(format="HH:MM:SS"),
-    }
+class Dim_concierto(Base):
+    __tablename__ = "dim_concierto"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
+    id_concierto = Column(Integer, primary_key=True)
+    nombre = Column(String(200), nullable=False)
+    pais = Column(String(200), nullable=False)
+    capacidad = Column(Integer, nullable=True)
 
 
-class Facts_spotify(Model):
-    tablename = "facts_spotify"
-    registry = models
-    fields = {
-        "plackback_id": BigInteger(primary_key=True),
-        "cancion_id":  ForeignKey(Dim_cancion),
-        "fecha_id":  ForeignKey(Dim_fecha),
-        "plataforma_id": ForeignKey(Dim_plataforma),
-        "artista_id":  ForeignKey(Dim_artista),
-        "album_id":  ForeignKey(Dim_album),
-        "aletorio_llegada": Boolean(),
-        "razon_llegada": ForeignKey(Dim_razon),
-        "razon_salida":  ForeignKey(Dim_razon),
-        "omitida": Boolean(),
-        "tiempo_escucha": Integer(),
-    }
+class Dim_razon(Base):
+    __tablename__ = "dim_razon"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
+    id_razon_social = Column(Integer, primary_key=True)
+    nombre = Column(String(200), nullable=False)
 
 
-class Facts_concierto(Model):
-    tablename = "facts_concierto"
-    registry = models
-    fields = {
-        "id_concierto": BigInteger(primary_key=True),
-        "cancion_id":  ForeignKey(Dim_cancion),
-        "concierto_id": ForeignKey(Dim_concierto),
-        "fecha_id":  ForeignKey(Dim_fecha),
-        "artista_id":  ForeignKey(Dim_artista),
-        "cantidad_publico": Integer(),
-        "cantidad_entradas_vendidas": Integer(),
-    }
+class Dim_plataforma(Base):
+    __tablename__ = "dim_plataforma"
+    __table_args__ = {"mysql_engine": "InnoDB"}
 
-#import asyncio
+    id_plataforma = Column(Integer, primary_key=True)
+    nombre = Column(String(200), nullable=False)
 
-await models.create_all()
-print(tablas)
+
+class Dim_fecha(Base):
+    __tablename__ = "dim_fecha"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
+    id_fecha = Column(Integer, primary_key=True)
+    fecha = Column(Date, nullable=False)
+    anio = Column(Integer, nullable=False)
+    mes = Column(Integer, nullable=False)
+    dia = Column(Integer, nullable=False)
+    time = Column(Time, nullable=True)
+
+
+# ---------------------- HECHOS ----------------------
+
+
+class Facts_spotify(Base):
+    __tablename__ = "facts_spotify"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
+    plackback_id = Column(BigInteger, primary_key=True)
+    cancion_id = Column(Integer, ForeignKey("dim_cancion.id_cancion"), nullable=False)
+    fecha_id = Column(Integer, ForeignKey("dim_fecha.id_fecha"), nullable=False)
+    plataforma_id = Column(
+        Integer, ForeignKey("dim_plataforma.id_plataforma"), nullable=False
+    )
+    artista_id = Column(Integer, ForeignKey("dim_artista.id_artista"), nullable=False)
+    album_id = Column(Integer, ForeignKey("dim_album.id_album"), nullable=True)
+    aletorio_llegada = Column(Boolean, nullable=True)
+    razon_llegada = Column(
+        Integer, ForeignKey("dim_razon.id_razon_social"), nullable=True
+    )
+    razon_salida = Column(
+        Integer, ForeignKey("dim_razon.id_razon_social"), nullable=True
+    )
+    omitida = Column(Boolean, nullable=True)
+    tiempo_escucha = Column(Integer, nullable=True)
+
+
+class Facts_concierto(Base):
+    __tablename__ = "facts_concierto"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cancion_id = Column(Integer, ForeignKey("dim_cancion.id_cancion"), nullable=False)
+    concierto_id = Column(
+        Integer, ForeignKey("dim_concierto.id_concierto"), nullable=False
+    )
+    fecha_id = Column(Integer, ForeignKey("dim_fecha.id_fecha"), nullable=False)
+    artista_id = Column(Integer, ForeignKey("dim_artista.id_artista"), nullable=False)
+    cantidad_publico = Column(Integer, nullable=True)
+    cantidad_entradas_vendidas = Column(Integer, nullable=True)
+
+
+if __name__ == "__main__":
+    Base.metadata.create_all(engine)
+    print("Tablas creadas exitosamente.")
