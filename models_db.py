@@ -44,7 +44,7 @@ class Dim_album(Base):
     __tablename__ = "dim_album"
     __table_args__ = {"mysql_engine": "InnoDB"}
 
-    id_album = Column(Integer, primary_key=True)
+    id_album = Column(String(200), primary_key=True)
     nombre = Column(String(200), nullable=False)
     artista_id = Column(Integer, ForeignKey("dim_artista.id_artista"), nullable=False)
     fecha_publicacion = Column(Date, nullable=True)
@@ -54,10 +54,12 @@ class Dim_cancion(Base):
     __tablename__ = "dim_cancion"
     __table_args__ = {"mysql_engine": "InnoDB"}
 
-    id_cancion = Column(Integer, primary_key=True)
+    id_cancion = Column(String(200), primary_key=True)
     titulo = Column(String(200), nullable=False)
-    artista_id = Column(Integer, ForeignKey("dim_artista.id_artista"), nullable=False)
-    album_id = Column(Integer, ForeignKey("dim_album.id_album"), nullable=True)
+    artista_id = Column(
+        String(200), ForeignKey("dim_artista.id_artista"), nullable=False
+    )
+    album_id = Column(String(200), ForeignKey("dim_album.id_album"), nullable=True)
     duracion = Column(Time, nullable=True)
 
 
@@ -65,7 +67,7 @@ class Dim_concierto(Base):
     __tablename__ = "dim_concierto"
     __table_args__ = {"mysql_engine": "InnoDB"}
 
-    id_concierto = Column(Integer, primary_key=True)
+    id_concierto = Column(String(200), primary_key=True)
     nombre = Column(String(200), nullable=False)
     pais = Column(String(200), nullable=False)
     capacidad = Column(Integer, nullable=True)
@@ -75,7 +77,7 @@ class Dim_razon(Base):
     __tablename__ = "dim_razon"
     __table_args__ = {"mysql_engine": "InnoDB"}
 
-    id_razon_social = Column(Integer, primary_key=True)
+    id_razon = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String(200), nullable=False)
 
 
@@ -83,7 +85,7 @@ class Dim_plataforma(Base):
     __tablename__ = "dim_plataforma"
     __table_args__ = {"mysql_engine": "InnoDB"}
 
-    id_plataforma = Column(Integer, primary_key=True)
+    id_plataforma = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String(200), nullable=False)
 
 
@@ -91,7 +93,7 @@ class Dim_fecha(Base):
     __tablename__ = "dim_fecha"
     __table_args__ = {"mysql_engine": "InnoDB"}
 
-    id_fecha = Column(Integer, primary_key=True)
+    id_fecha = Column(Integer, primary_key=True, autoincrement=True)
     fecha = Column(Date, nullable=False)
     anio = Column(Integer, nullable=False)
     mes = Column(Integer, nullable=False)
@@ -106,14 +108,18 @@ class Facts_spotify(Base):
     __tablename__ = "facts_spotify"
     __table_args__ = {"mysql_engine": "InnoDB"}
 
-    plackback_id = Column(BigInteger, primary_key=True)
-    cancion_id = Column(Integer, ForeignKey("dim_cancion.id_cancion"), nullable=False)
+    plackback_id = Column(BigInteger, primary_key=True, autoincrement=True)
+    cancion_id = Column(
+        String(200), ForeignKey("dim_cancion.id_cancion"), nullable=False
+    )
     fecha_id = Column(Integer, ForeignKey("dim_fecha.id_fecha"), nullable=False)
     plataforma_id = Column(
         Integer, ForeignKey("dim_plataforma.id_plataforma"), nullable=False
     )
-    artista_id = Column(Integer, ForeignKey("dim_artista.id_artista"), nullable=False)
-    album_id = Column(Integer, ForeignKey("dim_album.id_album"), nullable=True)
+    artista_id = Column(
+        String(200), ForeignKey("dim_artista.id_artista"), nullable=False
+    )
+    album_id = Column(String(200), ForeignKey("dim_album.id_album"), nullable=True)
     aletorio_llegada = Column(Boolean, nullable=True)
     razon_llegada = Column(
         Integer, ForeignKey("dim_razon.id_razon_social"), nullable=True
@@ -130,12 +136,16 @@ class Facts_concierto(Base):
     __table_args__ = {"mysql_engine": "InnoDB"}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    cancion_id = Column(Integer, ForeignKey("dim_cancion.id_cancion"), nullable=False)
+    cancion_id = Column(
+        String(200), ForeignKey("dim_cancion.id_cancion"), nullable=False
+    )
     concierto_id = Column(
-        Integer, ForeignKey("dim_concierto.id_concierto"), nullable=False
+        String(200), ForeignKey("dim_concierto.id_concierto"), nullable=False
     )
     fecha_id = Column(Integer, ForeignKey("dim_fecha.id_fecha"), nullable=False)
-    artista_id = Column(Integer, ForeignKey("dim_artista.id_artista"), nullable=False)
+    artista_id = Column(
+        String(200), ForeignKey("dim_artista.id_artista"), nullable=False
+    )
     cantidad_publico = Column(Integer, nullable=True)
     cantidad_entradas_vendidas = Column(Integer, nullable=True)
 
