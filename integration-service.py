@@ -1,5 +1,6 @@
 import pandas as pd
 from models_db import (
+    Base,
     Dim_cancion,
     Dim_artista,
     Dim_album,
@@ -7,11 +8,12 @@ from models_db import (
     Dim_concierto,
     Dim_plataforma,
     # Dim_fecha,
+    Session,
 )
 import requests
 # import db_connection as db
 
-spotify_df = pd.read_csv("spotify_history.csv", chunksize=2000)
+spotify_df = pd.read_csv("spotify_history.csv")  # , chunksize=2000)
 conciertos_df = pd.read_csv("spotify_conciertos.csv", chunksize=2000)
 
 
@@ -46,42 +48,46 @@ def fetch_to_api(track_id: str):
     return cancion, artista, album
 
 
-def set_another_models(
-    razon,
-    plataforma,
-    concierto_id,
-    concierto_nombre,
-    concierto_pais,
-    concierto_capacidad,
-):
-    razon = Dim_razon(nombre=razon)
-
-    plataforma = Dim_plataforma(nombre=plataforma)
-
-    concierto = Dim_concierto(
-        id_concierto=concierto_id,
-        nombre=concierto_nombre,
-        pais=concierto_pais,
-        capacidad=concierto_capacidad,
+def set_another_models():
+    plataformas = spotify_df["platform"].value_counts()
+    plataformas = plataformas[plataformas >= 1]
+    razones = pd.concat([spotify_df["reason_start"], spotify_df["reason_end"]])
+    razones = razones.value_counts()
+    razones = razones[razones >= 1]
+    insert = ""
+    # Insertar dimensiones de plataforma
+    for _, plataforma in plataformas:
+        insert += f"(NULL, '{plataforma}')"
+    consulta = text(
+        "INSERT INTO dim_plataforma (id_plataforma, nombre) VALUES " + insert
     )
-
-    return razon, plataforma, concierto
+    with engine.connect() as conn:
+        conn.execute(consulta)
+        conn.commit()
+    # Insertar dimensiones de razon
+    for _, razon in razones:
+        insert += f"(NULL, '{razon}')"
+    consulta = text("INSERT INTO dim_razon (id_razon, nombre) VALUES " + insert)
+    with engine.connect() as conn:
+        conn.execute(consulta)
+        conn.commit()
 
 
 if __name__ == "__main__":
-    for chunk in conciertos_df:
-        for index, row in chunk.iterrows():
-            # Insertar dimensiones
-            razon, plataforma, concierto = set_another_models(
-                row["razon"],
-                row["plataforma"],
-                row["concierto_id"],
-                row["concierto_nombre"],
-                row["concierto_pais"],
-                row["concierto_capacidad"],
-            )
+    pass
+    # for chunk in spotify_df:
 
-            # Insertar dimensiones
+    # for index, row in chunk.iterrows():
+    # Insertar dimensiones
+    #        razon, plataforma, concierto = set_another_models(
+    #            row["razon"],
+    #            row["plataforma"],
+    #            row["concierto_id"],
+    #            row["concierto_nombre"],
+    #            row["concierto_pais"],
+    #            row["concierto_capacidad"],
+    #        )
 
-            # Insertar datos de facts
-            #
+    # Insertar dimensiones
+
+    # Insertar datos de facts

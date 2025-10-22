@@ -8,6 +8,8 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     create_engine,
+    engine,
+    text,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv

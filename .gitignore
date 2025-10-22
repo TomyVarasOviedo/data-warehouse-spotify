@@ -3,4 +3,5 @@ env/*
 API/.env
 spotify_data_dictionary Description.csv
 .env
+*/__pycache__/
 
