@@ -38,7 +38,7 @@ class Dim_artista(Base):
     __tablename__ = "dim_artista"
     __table_args__ = {"mysql_engine": "InnoDB"}
 
-    id_artista = Column(Integer, primary_key=True)
+    id_artista = Column(String(200), primary_key=True) 
     nombre = Column(String(200), nullable=False)
 
 

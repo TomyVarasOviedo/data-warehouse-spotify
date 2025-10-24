@@ -54,27 +54,30 @@ def set_another_models():
     razones = pd.concat([spotify_df["reason_start"], spotify_df["reason_end"]])
     razones = razones.value_counts()
     razones = razones[razones >= 1]
+
+    lista_plataformas = []
+    lista_razones = []
+
     insert = ""
     # Insertar dimensiones de plataforma
     for _, plataforma in plataformas:
-        insert += f"(NULL, '{plataforma}')"
-    consulta = text(
-        "INSERT INTO dim_plataforma (id_plataforma, nombre) VALUES " + insert
-    )
-    with engine.connect() as conn:
-        conn.execute(consulta)
-        conn.commit()
+        plataforma = Dim_plataforma(nombre=plataforma)
+        lista_plataformas.append(plataforma)
     # Insertar dimensiones de razon
     for _, razon in razones:
-        insert += f"(NULL, '{razon}')"
-    consulta = text("INSERT INTO dim_razon (id_razon, nombre) VALUES " + insert)
-    with engine.connect() as conn:
-        conn.execute(consulta)
-        conn.commit()
+        razon = Dim_razon(nombre=razon)
+        lista_razones.append(razon)
+
+    with Session(engine) as session:
+        session.add_all(lista_plataformas)
+        session.add_all(lista_razones)
+        session.commit()        
+    
+    
 
 
 if __name__ == "__main__":
-    pass
+    set_another_models() 
     # for chunk in spotify_df:
 
     # for index, row in chunk.iterrows():
