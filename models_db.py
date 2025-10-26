@@ -8,8 +8,6 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     create_engine,
-    engine,
-    text,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
@@ -38,7 +36,7 @@ class Dim_artista(Base):
     __tablename__ = "dim_artista"
     __table_args__ = {"mysql_engine": "InnoDB"}
 
-    id_artista = Column(String(200), primary_key=True) 
+    id_artista = Column(String(200), primary_key=True)
     nombre = Column(String(200), nullable=False)
 
 
@@ -48,7 +46,9 @@ class Dim_album(Base):
 
     id_album = Column(String(200), primary_key=True)
     nombre = Column(String(200), nullable=False)
-    artista_id = Column(Integer, ForeignKey("dim_artista.id_artista"), nullable=False)
+    artista_id = Column(
+        String(200), ForeignKey("dim_artista.id_artista"), nullable=False
+    )
     fecha_publicacion = Column(Date, nullable=True)
 
 
@@ -62,7 +62,7 @@ class Dim_cancion(Base):
         String(200), ForeignKey("dim_artista.id_artista"), nullable=False
     )
     album_id = Column(String(200), ForeignKey("dim_album.id_album"), nullable=True)
-    duracion = Column(Time, nullable=True)
+    duracion = Column(Integer, nullable=True)
 
 
 class Dim_concierto(Base):
@@ -123,12 +123,8 @@ class Facts_spotify(Base):
     )
     album_id = Column(String(200), ForeignKey("dim_album.id_album"), nullable=True)
     aletorio_llegada = Column(Boolean, nullable=True)
-    razon_llegada = Column(
-        Integer, ForeignKey("dim_razon.id_razon_social"), nullable=True
-    )
-    razon_salida = Column(
-        Integer, ForeignKey("dim_razon.id_razon_social"), nullable=True
-    )
+    razon_llegada = Column(Integer, ForeignKey("dim_razon.id_razon"), nullable=True)
+    razon_salida = Column(Integer, ForeignKey("dim_razon.id_razon"), nullable=True)
     omitida = Column(Boolean, nullable=True)
     tiempo_escucha = Column(Integer, nullable=True)
 
