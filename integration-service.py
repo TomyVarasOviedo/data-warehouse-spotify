@@ -1,20 +1,21 @@
 from datetime import datetime
 import pandas as pd
+from tqdm import tqdm
 from models_db import (
     Dim_cancion,
     Dim_artista,
     Dim_album,
+    Dim_fecha,
     Dim_razon,
     Dim_concierto,
     Dim_plataforma,
     Facts_spotify,
-    # Dim_fecha,
     engine,
     Session,
 )
 import requests
 
-spotify_df = pd.read_csv("spotify_history.csv", chunksize=2000)
+spotify_df = pd.read_csv("spotify_history.csv", chunksize=20)
 conciertos_df = pd.read_csv("spotify_conciertos.csv", chunksize=2000)
 
 
@@ -76,6 +77,39 @@ def find_data_with_name(
     return plataforma.id_plataforma, razon_llegada.id_razon, razon_salida.id_razon
 
 
+def check_id_artista_cancion_album(id_artista, id_cancion, id_album):
+    with Session(bind=engine) as session:
+        if id_artista:
+            artista = (
+                session.query(Dim_artista)
+                .filter(Dim_artista.id_artista == id_artista)
+                .first()
+            )
+
+        if id_cancion:
+            cancion = (
+                session.query(Dim_cancion)
+                .filter(Dim_cancion.id_cancion == id_cancion)
+                .first()
+            )
+
+        if id_album:
+            album = (
+                session.query(Dim_album).filter(Dim_album.id_album == id_album).first()
+            )
+
+    return artista, cancion, album
+
+
+def check_fecha_exists(id_fecha: int):
+    with Session(bind=engine) as session:
+        if id_fecha:
+            fecha = (
+                session.query(Dim_fecha).filter(Dim_fecha.id_fecha == id_fecha).first()
+            )
+    return fecha
+
+
 def set_another_models():
     spotify_models = pd.read_csv("spotify_history.csv")
     spotify_conciertos = pd.read_csv("spotify_conciertos.csv")
@@ -124,35 +158,82 @@ if __name__ == "__main__":
         "dim_artista": [],
         "dim_album": [],
         "dim_cancion": [],
+        "dim_fecha": [],
         "dim_fact_spotify": [],
     }
+    cache = []
     # set_another_models()
     for chunk in spotify_df:
-        for index, row in chunk.iterrows():
+        for index, row in tqdm(chunk.iterrows(), desc="Insertando datos del chunk..."):
+            fecha_stage = datetime.fromisoformat(row["ts"])
+
             # Insertar dimensiones: cancion, artista, album
             cancion, artista, album = set_api_models(row["spotify_track_uri"])
-            lista_db["dim_cancion"].append(cancion)
-            lista_db["dim_artista"].append(artista)
-            lista_db["dim_album"].append(album)
+
+            # Chequear existencia de entidades en la base de datos
+            artista_check, cancion_check, album_check = check_id_artista_cancion_album(
+                artista.id_artista, cancion.id_cancion, album.id_album
+            )
+            timestamp_fecha = int(fecha_stage.timestamp())
+            fecha_check = check_fecha_exists(timestamp_fecha)
+
+            if cancion_check is None and cancion.id_cancion not in cache:
+                cache.append(cancion.id_cancion)
+                lista_db["dim_cancion"].append(cancion)
+
+            if artista_check is None and artista.id_artista not in cache:
+                print(cache)
+                cache.append(artista.id_artista)
+                lista_db["dim_artista"].append(artista)
+
+            if album_check is None and album.id_album not in cache:
+                cache.append(album.id_album)
+                lista_db["dim_album"].append(album)
+
+            if fecha_check is None and timestamp_fecha not in cache:
+                cache.append(timestamp_fecha)
+                lista_db["dim_fecha"].append(
+                    Dim_fecha(
+                        id_fecha=int(fecha_stage.timestamp()),
+                        fecha=fecha_stage.date(),
+                        anio=fecha_stage.year,
+                        mes=fecha_stage.month,
+                        dia=fecha_stage.day,
+                        time=fecha_stage.time(),
+                    )
+                )
+
             plataforma, razon_entrada, razon_salida = find_data_with_name(
                 row["platform"], row["reason_start"], row["reason_end"]
             )
-            print(plataforma, razon_entrada, razon_salida)
+
             lista_db["dim_fact_spotify"].append(
                 Facts_spotify(
                     cancion_id=cancion.id_cancion,
+                    plataforma_id=plataforma,
+                    fecha_id=timestamp_fecha,
+                    artista_id=artista.id_artista,
+                    album_id=album.id_album,
+                    aletorio_llegada=row["shuffle"],
+                    razon_llegada=razon_entrada,
+                    razon_salida=razon_salida,
+                    omitida=row["skipped"],
+                    tiempo_escucha=int(row["ms_played"]),
                 )
             )
-            break
-        break
+
         with Session(bind=engine) as session:
             print("Inserting chunk...")
-
             session.add_all(lista_db["dim_artista"])
             session.commit()
             session.add_all(lista_db["dim_album"])
             session.commit()
             session.add_all(lista_db["dim_cancion"])
+            session.commit()
+            session.add_all(lista_db["dim_fecha"])
+            session.commit()
+
+            session.add_all(lista_db["dim_fact_spotify"])
             session.commit()
             for model_name, model_list in lista_db.items():
                 lista_db[model_name].clear()

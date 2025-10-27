@@ -95,7 +95,7 @@ class Dim_fecha(Base):
     __tablename__ = "dim_fecha"
     __table_args__ = {"mysql_engine": "InnoDB"}
 
-    id_fecha = Column(Integer, primary_key=True, autoincrement=True)
+    id_fecha = Column(BigInteger, primary_key=True, autoincrement=False)
     fecha = Column(Date, nullable=False)
     anio = Column(Integer, nullable=False)
     mes = Column(Integer, nullable=False)
@@ -114,7 +114,7 @@ class Facts_spotify(Base):
     cancion_id = Column(
         String(200), ForeignKey("dim_cancion.id_cancion"), nullable=False
     )
-    fecha_id = Column(Integer, ForeignKey("dim_fecha.id_fecha"), nullable=False)
+    fecha_id = Column(BigInteger, ForeignKey("dim_fecha.id_fecha"), nullable=False)
     plataforma_id = Column(
         Integer, ForeignKey("dim_plataforma.id_plataforma"), nullable=False
     )
@@ -140,7 +140,7 @@ class Facts_concierto(Base):
     concierto_id = Column(
         String(200), ForeignKey("dim_concierto.id_concierto"), nullable=False
     )
-    fecha_id = Column(Integer, ForeignKey("dim_fecha.id_fecha"), nullable=False)
+    fecha_id = Column(BigInteger, ForeignKey("dim_fecha.id_fecha"), nullable=False)
     artista_id = Column(
         String(200), ForeignKey("dim_artista.id_artista"), nullable=False
     )
