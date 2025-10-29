@@ -22,7 +22,7 @@ database = os.getenv("database_name")
 # Conectar con la base de datos
 database_url = f"mysql+pymysql://{user}:{password}@localhost:3306/{database}"
 
-engine = create_engine(database_url, echo=True)
+engine = create_engine(database_url, echo=False)
 
 Session = sessionmaker(bind=engine)
 
@@ -62,7 +62,7 @@ class Dim_cancion(Base):
         String(200), ForeignKey("dim_artista.id_artista"), nullable=False
     )
     album_id = Column(String(200), ForeignKey("dim_album.id_album"), nullable=True)
-    duracion = Column(Integer, nullable=True)
+    duracion = Column(BigInteger, nullable=True)
 
 
 class Dim_concierto(Base):
