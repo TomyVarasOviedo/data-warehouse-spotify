@@ -51,3 +51,17 @@ pip install -r requirements.txt
 - cantidad_publico: El número de personas que asistieron al concierto.
 - cantidad_entradas_vendidas: El número de entradas vendidas para el concierto.
 - fecha: La fecha en que se llevó a cabo el concierto.
+
+## Metabase: Configuraciones y Instalacion
+### Instalar el contenedor
+```bash
+docker pull metabase/metabase:latest
+```
+### Configuracion del contenedor
+```bash
+docker run -d -p 3000:3000 --add-host=host.docker.internal:host-gateway -e "MB_DB_TYPE=mysql" -e "MB_DB_HOST=host.docker.internal" -e "MB_DB_PORT=3306" -e "MB_DB_USER=metabaseuser" -e "MB_DB_PASS=1234" -e "MB_DB_DBNAME=data_warehouse_spotify" --name metabase metabase/metabase-mysql
+```
+### Utilizacion 
+```bash
+docker start metabase
+```
